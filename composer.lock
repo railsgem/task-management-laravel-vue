@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4731429c7f25ab92eaa813447a972209",
+    "content-hash": "de5facd7be8f6bf10db9886f4525d090",
     "packages": [
         {
             "name": "dnoegel/php-xdg-base-dir",
@@ -2580,6 +2580,51 @@
             "description": "CssToInlineStyles is a class that enables you to convert HTML-pages/files into HTML-pages/files with inline styles. This is very useful when you're sending emails.",
             "homepage": "https://github.com/tijsverkoyen/CssToInlineStyles",
             "time": "2017-11-27T11:13:29+00:00"
+        },
+        {
+            "name": "triasrahman/jsonseeder",
+            "version": "v1.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/triasrahman/laravel-jsonseeder.git",
+                "reference": "5354da0f313b4ef4003a869159a06e3cfdb806cb"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/triasrahman/laravel-jsonseeder/zipball/5354da0f313b4ef4003a869159a06e3cfdb806cb",
+                "reference": "5354da0f313b4ef4003a869159a06e3cfdb806cb",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": "5.*",
+                "php": ">=5.4.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Triasrahman\\JSONSeeder\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Trias Nur Rahman",
+                    "email": "contact@triasrahman.com"
+                }
+            ],
+            "description": "Quick and efficient seeding database from JSON files for Laravel",
+            "keywords": [
+                "database",
+                "import",
+                "json",
+                "laravel",
+                "seed",
+                "seeder"
+            ],
+            "time": "2015-09-05T16:39:43+00:00"
         },
         {
             "name": "vlucas/phpdotenv",

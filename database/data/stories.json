@@ -1,0 +1,36 @@
+[
+  {
+    "id": 1,
+    "name": "Store A",
+    "take_days": 2,
+    "daily_tasks_lisk": [
+      {
+        "relative_day": 1,
+        "task_name": "Task A"
+      },
+      {
+        "relative_day": 2,
+        "task_name": "Task B"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Store B",
+    "take_days": 3,
+    "daily_tasks_lisk": [
+      {
+        "relative_day": 1,
+        "task_name": "Task C"
+      },
+      {
+        "relative_day": 2,
+        "task_name": "Task D"
+      },
+      {
+        "relative_day": 3,
+        "task_name": "Task E"
+      }
+    ]
+  }
+]
