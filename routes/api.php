@@ -16,3 +16,6 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::middleware('api')->get('tasks','TaskController@showTasks');
+Route::middleware('api')->put('tasks/updateAll', 'TaskController@updateTasks');

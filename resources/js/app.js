@@ -7,6 +7,7 @@
 
 require('./bootstrap');
 
+import "font-awesome/css/font-awesome.css";
 window.Vue = require('vue');
 
 /**
@@ -21,6 +22,9 @@ window.Vue = require('vue');
 // files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default));
 
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
+Vue.component('simple-draggable', require('./components/SimpleDraggable.vue').default);
+Vue.component('taskPreview', require('./components/TaskPreview.vue').default);
+Vue.component('rawDisplayer', require('./components/infra/raw-displayer.vue').default);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to

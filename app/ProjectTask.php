@@ -20,4 +20,9 @@ class ProjectTask extends Model
      * @var array
      */
     protected $fillable = ['project_id', 'absolute_day', 'name', 'story_id'];
+
+
+    public function story() {
+        return $this->hasOne('\App\Story', 'id', 'story_id');
+    }
 }
