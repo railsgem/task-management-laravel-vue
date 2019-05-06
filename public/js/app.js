@@ -1852,6 +1852,8 @@ __webpack_require__.r(__webpack_exports__);
   data: function data() {
     return {
       list: [],
+      reducedList: [],
+      previewList: [],
       story_min: [],
       story_max: [],
       message: null,
@@ -1860,58 +1862,116 @@ __webpack_require__.r(__webpack_exports__);
     };
   },
   mounted: function mounted() {
-    var _this = this;
-
-    axios__WEBPACK_IMPORTED_MODULE_1___default.a.get('api/tasks').then(function (response) {
-      _this.loading = false;
-      _this.list = response.data;
-    }, function (error) {
-      _this.loading = false;
-    });
+    this.getTaskList();
   },
   computed: {
-    byStory: function byStory() {
-      var _this2 = this;
-
-      return this.list.reduce(function (newTask, item) {
-        if (item.story_id != null) {
-          newTask['story_id:' + item.story_id] = newTask['story_id:' + item.story_id] || [];
-          newTask['story_id:' + item.story_id] = item;
-
-          if (_this2.story_min[item.story_id] == null) {
-            _this2.story_min[item.story_id] = [];
-            _this2.story_min[item.story_id].min = item.absolute_day;
-          }
-
-          if (_this2.story_min[item.story_id].min > item.absolute_day) {
-            _this2.story_min[item.story_id].min = item.absolute_day;
-          }
-
-          if (_this2.story_max[item.story_id] == null) {
-            _this2.story_max[item.story_id] = [];
-            _this2.story_max[item.story_id].max = item.absolute_day;
-          }
-
-          if (_this2.story_max[item.story_id].max < item.absolute_day) {
-            _this2.story_max[item.story_id].max = item.absolute_day;
-          }
-
-          newTask['story_id:' + item.story_id].min_day = _this2.story_min[item.story_id].min;
-          newTask['story_id:' + item.story_id].max_day = _this2.story_max[item.story_id].max;
-        } else {
-          newTask['story_id:' + 'null - item_id:' + item.id] = newTask['story_id:' + 'null - item_id:' + item.id] || []; //.push(item);
-
-          newTask['story_id:' + 'null - item_id:' + item.id] = item;
-        }
-
-        return newTask;
-      }, {});
+    byPreviewList: function byPreviewList() {
+      return this.formatPreviewList();
     },
     draggingInfo: function draggingInfo() {
       return this.dragging ? "under drag" : "";
     }
   },
   methods: {
+    getTaskList: function getTaskList() {
+      var _this = this;
+
+      axios__WEBPACK_IMPORTED_MODULE_1___default.a.get('api/tasks').then(function (response) {
+        _this.loading = false;
+        _this.list = response.data;
+        var storySet = new Set();
+
+        _this.list.forEach(function (item, index) {
+          _this.appendItemToReducedList(item, storySet);
+        });
+
+        _this.previewList = _this.formatPreviewList();
+      }, function (error) {
+        _this.loading = false;
+      });
+    },
+    appendItemToReducedList: function appendItemToReducedList(item, storySet) {
+      this.updateMinAbsoluteDay(item);
+      this.updateMaxAbsoluteDay(item);
+
+      if (item.story_id == null || !storySet.has(item.story_id)) {
+        var tempItem = item;
+        this.reducedList.push(tempItem);
+        storySet.add(item.story_id);
+      }
+
+      if (item.story_id != null) {
+        var index = this.list.findIndex(function (element) {
+          return element.id === item.id;
+        });
+        var subtask = {
+          task_id: this.list[index].id,
+          absolute_day: this.list[index].absolute_day,
+          task_name: this.list[index].name
+        };
+        var storyIndex = this.reducedList.findIndex(function (element) {
+          return element.story_id === item.story_id;
+        });
+
+        if (this.reducedList[storyIndex].sub_tasks == undefined) {
+          this.reducedList[storyIndex].sub_tasks = [];
+        }
+
+        this.reducedList[storyIndex].sub_tasks.push(subtask);
+      }
+    },
+    updateMinAbsoluteDay: function updateMinAbsoluteDay(item) {
+      if (this.story_min[item.story_id] == null) {
+        this.story_min[item.story_id] = [];
+        this.story_min[item.story_id].min = item.absolute_day;
+      }
+
+      if (this.story_min[item.story_id].min > item.absolute_day) {
+        this.story_min[item.story_id].min = item.absolute_day;
+      }
+    },
+    updateMaxAbsoluteDay: function updateMaxAbsoluteDay(item) {
+      if (this.story_max[item.story_id] == null) {
+        this.story_max[item.story_id] = [];
+        this.story_max[item.story_id].max = item.absolute_day;
+      }
+
+      if (this.story_max[item.story_id].max < item.absolute_day) {
+        this.story_max[item.story_id].max = item.absolute_day;
+      }
+    },
+    formatPreviewList: function formatPreviewList() {
+      var _this2 = this;
+
+      this.previewList = [];
+      this.reducedList.forEach(function (item, index) {
+        if (item.story_id != null) {
+          if (item.story.daily_tasks_lisk !== undefined) {
+            var tasks = item.sub_tasks;
+            tasks.forEach(function (daily_task, index) {
+              var tempDailyTask = {
+                'id': daily_task.task_id,
+                'absolute_day': daily_task.absolute_day,
+                'name': daily_task.task_name,
+                'order': item.order
+              };
+
+              _this2.previewList.push(tempDailyTask);
+            });
+          }
+        } else {
+          var tempItem = {
+            'id': item.id,
+            'absolute_day': item.absolute_day,
+            'name': item.name,
+            'order': item.order
+          };
+
+          _this2.previewList.push(tempItem);
+        }
+      });
+      return this.previewList;
+    },
     isInputDisabled: function isInputDisabled(story_id) {
       if (!story_id) {
         return false;
@@ -1919,11 +1979,17 @@ __webpack_require__.r(__webpack_exports__);
 
       return story_id == null ? disabled : '';
     },
-    onUpdate: function onUpdate() {
+    updateTaskSort: function updateTaskSort() {
+      this.reducedList.map(function (task, index) {
+        task.order = index + 1;
+      });
+    },
+    onSubmit: function onSubmit() {
       var _this3 = this;
 
+      console.log(this.previewList);
       axios__WEBPACK_IMPORTED_MODULE_1___default.a.put('api/tasks/updateAll', {
-        tasks: this.list
+        tasks: this.previewList
       }).then(function (response) {
         _this3.errMessage = '';
         _this3.message = response.data;
@@ -6504,7 +6570,7 @@ exports = module.exports = __webpack_require__(/*! ../../../node_modules/css-loa
 
 
 // module
-exports.push([module.i, "\n.button-wrap[data-v-3e274ae0] {\n    text-align: center;\n    margin: 20px;\n}\n.button[data-v-3e274ae0] {\n    margin-top: 35px;\n}\n.handle[data-v-3e274ae0] {\n    float: left;\n    padding-top: 8px;\n    padding-bottom: 8px;\n}\n.close[data-v-3e274ae0] {\n    float: right;\n    padding-top: 8px;\n    padding-bottom: 8px;\n}\n#story-duration[data-v-3e274ae0] {\n    width: 300px;\n}\ninput[data-v-3e274ae0] {\n    display: inline-block;\n    width: 50%;\n}\n.text[data-v-3e274ae0] {\n    margin: 20px;\n}\n", ""]);
+exports.push([module.i, "\n.button-wrap[data-v-3e274ae0] {\n    text-align: center;\n    margin: 20px;\n}\n.handle[data-v-3e274ae0] {\n    float: left;\n    padding-top: 8px;\n    padding-bottom: 8px;\n}\ninput[data-v-3e274ae0] {\n    display: inline-block;\n    width: 50%;\n}\n.text[data-v-3e274ae0] {\n    margin: 20px;\n}\n", ""]);
 
 // exports
 
@@ -40705,9 +40771,10 @@ var render = function() {
             "draggable",
             {
               staticClass: "list-group",
-              attrs: { tag: "ul", list: _vm.list, handle: ".handle" }
+              attrs: { tag: "ul", list: _vm.reducedList, handle: ".handle" },
+              on: { change: _vm.updateTaskSort }
             },
-            _vm._l(_vm.byStory, function(element, idx) {
+            _vm._l(_vm.reducedList, function(element, idx) {
               return _c(
                 "li",
                 { key: element.id, staticClass: "list-group-item" },
@@ -40722,7 +40789,9 @@ var render = function() {
                         _vm._s(
                           element.story_id == null
                             ? element.absolute_day
-                            : element.min_day + "-" + element.max_day
+                            : _vm.story_min[element.story_id].min +
+                                "-" +
+                                _vm.story_max[element.story_id].max
                         )
                       )
                     ]
@@ -40792,7 +40861,7 @@ var render = function() {
               {
                 staticClass: "btn btn-primary",
                 attrs: { type: "button" },
-                on: { click: _vm.onUpdate }
+                on: { click: _vm.onSubmit }
               },
               [_vm._v("Submit")]
             )
@@ -40803,7 +40872,12 @@ var render = function() {
       _vm._v(" "),
       _c("taskPreview", {
         staticClass: "col-4",
-        attrs: { value: _vm.list, title: "List" }
+        attrs: { value: _vm.byPreviewList, title: "List" }
+      }),
+      _vm._v(" "),
+      _c("rawDisplayer", {
+        staticClass: "col-4",
+        attrs: { value: _vm.reducedList, title: "List" }
       })
     ],
     1
@@ -53258,15 +53332,14 @@ __webpack_require__.r(__webpack_exports__);
 /*!*****************************************************!*\
   !*** ./resources/js/components/SimpleDraggable.vue ***!
   \*****************************************************/
-/*! no static exports found */
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _SimpleDraggable_vue_vue_type_template_id_3e274ae0_scoped_true___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./SimpleDraggable.vue?vue&type=template&id=3e274ae0&scoped=true& */ "./resources/js/components/SimpleDraggable.vue?vue&type=template&id=3e274ae0&scoped=true&");
 /* harmony import */ var _SimpleDraggable_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./SimpleDraggable.vue?vue&type=script&lang=js& */ "./resources/js/components/SimpleDraggable.vue?vue&type=script&lang=js&");
-/* harmony reexport (unknown) */ for(var __WEBPACK_IMPORT_KEY__ in _SimpleDraggable_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__) if(__WEBPACK_IMPORT_KEY__ !== 'default') (function(key) { __webpack_require__.d(__webpack_exports__, key, function() { return _SimpleDraggable_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[key]; }) }(__WEBPACK_IMPORT_KEY__));
-/* harmony import */ var _SimpleDraggable_vue_vue_type_style_index_0_id_3e274ae0_scoped_true_lang_css___WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./SimpleDraggable.vue?vue&type=style&index=0&id=3e274ae0&scoped=true&lang=css& */ "./resources/js/components/SimpleDraggable.vue?vue&type=style&index=0&id=3e274ae0&scoped=true&lang=css&");
+/* empty/unused harmony star reexport *//* harmony import */ var _SimpleDraggable_vue_vue_type_style_index_0_id_3e274ae0_scoped_true_lang_css___WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./SimpleDraggable.vue?vue&type=style&index=0&id=3e274ae0&scoped=true&lang=css& */ "./resources/js/components/SimpleDraggable.vue?vue&type=style&index=0&id=3e274ae0&scoped=true&lang=css&");
 /* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
 
 
@@ -53298,7 +53371,7 @@ component.options.__file = "resources/js/components/SimpleDraggable.vue"
 /*!******************************************************************************!*\
   !*** ./resources/js/components/SimpleDraggable.vue?vue&type=script&lang=js& ***!
   \******************************************************************************/
-/*! no static exports found */
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -53346,15 +53419,14 @@ __webpack_require__.r(__webpack_exports__);
 /*!*************************************************!*\
   !*** ./resources/js/components/TaskPreview.vue ***!
   \*************************************************/
-/*! no static exports found */
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _TaskPreview_vue_vue_type_template_id_acc01030___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./TaskPreview.vue?vue&type=template&id=acc01030& */ "./resources/js/components/TaskPreview.vue?vue&type=template&id=acc01030&");
 /* harmony import */ var _TaskPreview_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./TaskPreview.vue?vue&type=script&lang=js& */ "./resources/js/components/TaskPreview.vue?vue&type=script&lang=js&");
-/* harmony reexport (unknown) */ for(var __WEBPACK_IMPORT_KEY__ in _TaskPreview_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__) if(__WEBPACK_IMPORT_KEY__ !== 'default') (function(key) { __webpack_require__.d(__webpack_exports__, key, function() { return _TaskPreview_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__[key]; }) }(__WEBPACK_IMPORT_KEY__));
-/* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+/* empty/unused harmony star reexport *//* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
 
 
 
@@ -53384,7 +53456,7 @@ component.options.__file = "resources/js/components/TaskPreview.vue"
 /*!**************************************************************************!*\
   !*** ./resources/js/components/TaskPreview.vue?vue&type=script&lang=js& ***!
   \**************************************************************************/
-/*! no static exports found */
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";

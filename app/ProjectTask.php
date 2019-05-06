@@ -19,7 +19,7 @@ class ProjectTask extends Model
      *
      * @var array
      */
-    protected $fillable = ['project_id', 'absolute_day', 'name', 'story_id'];
+    protected $fillable = ['project_id', 'absolute_day', 'name', 'story_id', 'order'];
 
 
     public function story() {
