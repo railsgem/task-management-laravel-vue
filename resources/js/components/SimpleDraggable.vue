@@ -33,7 +33,7 @@
         </div>
 
         <taskPreview class="col-4" :value="byPreviewList" title="List" />
-        <rawDisplayer class="col-4" :value="reducedList" title="List" />
+        <!--<rawDisplayer class="col-4" :value="reducedList" title="List" />-->
     </div>
 </template>
 

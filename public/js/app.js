@@ -40873,11 +40873,6 @@ var render = function() {
       _c("taskPreview", {
         staticClass: "col-4",
         attrs: { value: _vm.byPreviewList, title: "List" }
-      }),
-      _vm._v(" "),
-      _c("rawDisplayer", {
-        staticClass: "col-4",
-        attrs: { value: _vm.reducedList, title: "List" }
       })
     ],
     1
